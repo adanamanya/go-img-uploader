@@ -1,3 +1,9 @@
 main.go
 key.json
 .env
+vendor/
+docs/
+.DS_Store
+app
+main.go
+gin-bin
