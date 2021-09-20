@@ -1,0 +1,12 @@
+version: '3'
+services:
+  go-auth:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: gogogoimgupload
+    container_name: gogogoimgupload
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080"

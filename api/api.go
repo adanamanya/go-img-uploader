@@ -10,12 +10,16 @@ import (
 )
 
 func Router(r *gin.Engine) {
+	r.LoadHTMLGlob("templates/*.html")
 	uploadImg := handler.HandleFileupload
 	r.POST("/upload", uploadImg)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "nanii!!??",
 		})
+	})
+	r.GET("/form", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "form.html", nil)
 	})
 	errorHandler(r)
 }
