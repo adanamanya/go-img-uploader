@@ -3,3 +3,4 @@ APP_TIMEZONE = Asia/Jakarta
 SERVER_ADDRESS = "0.0.0.0"
 SERVER_PORT = "8080"
 STORAGE_BUCKET = "*****.appspot.com"
+SECRET_TOKEN = "Brofist911"

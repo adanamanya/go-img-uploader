@@ -1,16 +1,21 @@
+
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-        <title>Upload your funny photos here</title>
+        <title>Upload your funny meme here</title>
     </head>
     <body>
-        <form method="post" action="/upload" enctype="multipart/form-data">
+        <form name="dizisForm" method="post" action="/upload" enctype="multipart/form-data">
             <label>File :</label>
-            <input type="file" name="image" />
+            <input type="file" name="data" />
             <input type="submit" />
+            <input type="hidden" name="auth"/>
         </form>
     </body>
 </html>
+<script type="text/javascript"> 
+    document.forms['dizisForm']['auth'].value = "{{.}}";
+</script>

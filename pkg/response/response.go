@@ -11,11 +11,13 @@ import (
 )
 
 func Response(ctx *gin.Context, res *responses.Response) {
+	//getting unix timestamp for meta response
 	var (
 		APP_TIMEZONE, _ = time.LoadLocation(os.Getenv("APP_TIMEZONE"))
 		TIME_NOW        = time.Now().In(APP_TIMEZONE)
 		TIME_UNIX       = TIME_NOW.Unix()
 	)
+	//return 204 when there is no content
 	if res.Code == 0 && res.Message == "" {
 		res.Code = 204
 		res.Message = "No Content"
@@ -34,6 +36,7 @@ func Response(ctx *gin.Context, res *responses.Response) {
 }
 
 func validateDefaultSuccess(value int) bool {
+	/*Default Success that we have so far*/
 	defaultSuccess := []int{200, 201, 202, 203, 204, 206}
 	i := sort.Search(len(defaultSuccess), func(i int) bool { return value <= defaultSuccess[i] })
 	if i < len(defaultSuccess) && defaultSuccess[i] == value {

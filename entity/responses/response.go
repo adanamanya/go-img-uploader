@@ -1,5 +1,6 @@
 package responses
 
+/* here we define struct of response */
 type Response struct {
 	Error   string `json:"-"`
 	Success bool   `json:"success"`

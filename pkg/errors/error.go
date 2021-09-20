@@ -5,7 +5,7 @@ import "errors"
 // New returns an error that formats as the given text.
 var New = errors.New
 
-// known errors
+// List of known errors
 var (
 	ErrInvalidFileType = errors.New("file type not supported")
 	ErrFailedInit      = errors.New("initialization failed, check credentials")
@@ -16,4 +16,5 @@ var (
 	ErrTooLarge        = errors.New("content must be smaller than 8mb")
 	ErrFalseContent    = errors.New("content must be image")
 	ErrFailedUpload    = errors.New("failed upload image, check your connection")
+	ErrUnauthorized    = errors.New("auth token did not match")
 )

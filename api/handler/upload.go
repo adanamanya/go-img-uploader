@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"os"
 
 	"gogogo/pkg/errors"
 	"gogogo/pkg/response"
@@ -19,7 +19,9 @@ import (
 )
 
 func HandleFileupload(c *gin.Context) {
-	file, handler, err := c.Request.FormFile("image")
+	//handling form upload
+	file, handler, err := c.Request.FormFile("data")
+	auth := c.Request.FormValue("auth")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": errors.ErrParsingFile.Error(),
@@ -27,10 +29,20 @@ func HandleFileupload(c *gin.Context) {
 		})
 		return
 	}
+	if auth != os.Getenv("SECRET_TOKEN") {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": errors.ErrUnauthorized.Error(),
+			"error":   true,
+		})
+		return
+	}
 	defer file.Close()
-	filename := handler.Filename
-	const MaxFileSize = 8 * 1000000 //8 megabytes (in bytes)
-	filetype := handler.Header.Get("Content-Type")
+
+	filename := handler.Filename                   //get file name
+	const MaxFileSize = 8 * 1000000                //8 megabytes (in bytes)
+	filetype := handler.Header.Get("Content-Type") //get content type
+
+	//if content type is not image, will throw error false content
 	if !strings.Contains(filetype, "image") {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": errors.ErrFalseContent.Error(),
@@ -38,8 +50,7 @@ func HandleFileupload(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("contentsize", handler.Size)
-	fmt.Println("contentsize", MaxFileSize)
+	//if size more than 8mb will throw error content too large
 	if handler.Size > MaxFileSize {
 		c.JSON(http.StatusRequestEntityTooLarge, gin.H{
 			"message": errors.ErrTooLarge.Error(),
@@ -49,12 +60,15 @@ func HandleFileupload(c *gin.Context) {
 	}
 	firebaseStorage := repository.FirebaseStorage()
 	bucket, _ := firebaseStorage.DefaultBucket()
+	//Write image to firebase storage
 	w := bucket.Object(filename).NewWriter(c)
-	w.ObjectAttrs.ContentType = filetype
-	//createImageUrl(imagePath, config.StorageBucket, ctx, client)
+	w.ObjectAttrs.ContentType = filetype //define contenttype
+
 	if _, err = io.Copy(w, file); err != nil {
-		log.Fatalln(err)
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": errors.ErrFailedUpload.Error(),
+			"error":   true,
+		})
 		return
 	}
 	defer file.Close()
@@ -62,7 +76,7 @@ func HandleFileupload(c *gin.Context) {
 		log.Fatalln(err)
 		return
 	}
-
+	//return success
 	result := responses.Response{
 		Code:    http.StatusOK,
 		Message: success.SuccessUpload,
