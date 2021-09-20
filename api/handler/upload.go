@@ -10,6 +10,7 @@ import (
 
 	"gogogo/entity/responses"
 	"gogogo/repository"
+	"io"
 	"strings"
 
 	"log"
@@ -18,9 +19,7 @@ import (
 )
 
 func HandleFileupload(c *gin.Context) {
-	file, err := c.FormFile("image")
-	filename := file.Filename
-	const MaxFileSize = 8 * 1000000 //8 megabytes (in bytes)
+	file, handler, err := c.Request.FormFile("image")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": errors.ErrParsingFile.Error(),
@@ -28,7 +27,10 @@ func HandleFileupload(c *gin.Context) {
 		})
 		return
 	}
-	filetype := file.Header.Get("Content-Type")
+	defer file.Close()
+	filename := handler.Filename
+	const MaxFileSize = 8 * 1000000 //8 megabytes (in bytes)
+	filetype := handler.Header.Get("Content-Type")
 	if !strings.Contains(filetype, "image") {
 		c.JSON(http.StatusForbidden, gin.H{
 			"message": errors.ErrFalseContent.Error(),
@@ -36,9 +38,9 @@ func HandleFileupload(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println("contentsize", file.Size)
+	fmt.Println("contentsize", handler.Size)
 	fmt.Println("contentsize", MaxFileSize)
-	if file.Size > MaxFileSize {
+	if handler.Size > MaxFileSize {
 		c.JSON(http.StatusRequestEntityTooLarge, gin.H{
 			"message": errors.ErrTooLarge.Error(),
 			"error":   true,
@@ -47,10 +49,16 @@ func HandleFileupload(c *gin.Context) {
 	}
 	firebaseStorage := repository.FirebaseStorage()
 	bucket, _ := firebaseStorage.DefaultBucket()
-	wc := bucket.Object(filename).NewWriter(c)
-	wc.ObjectAttrs.ContentType = filetype
-
-	if err := wc.Close(); err != nil {
+	w := bucket.Object(filename).NewWriter(c)
+	w.ObjectAttrs.ContentType = filetype
+	//createImageUrl(imagePath, config.StorageBucket, ctx, client)
+	if _, err = io.Copy(w, file); err != nil {
+		log.Fatalln(err)
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer file.Close()
+	if err := w.Close(); err != nil {
 		log.Fatalln(err)
 		return
 	}

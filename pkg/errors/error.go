@@ -15,4 +15,5 @@ var (
 	ErrNotAllowed      = errors.New("method not allowed")
 	ErrTooLarge        = errors.New("content must be smaller than 8mb")
 	ErrFalseContent    = errors.New("content must be image")
+	ErrFailedUpload    = errors.New("failed upload image, check your connection")
 )
